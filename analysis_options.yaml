@@ -1,0 +1,18 @@
+# Lista de compras — Matías Nicolás Echeveste Cardozo
+include: package:flutter_lints/flutter.yaml
+
+formatter:
+  page_width: 120
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-raw-types: true
+
+linter:
+  rules:
+    - prefer_final_locals
+    - prefer_single_quotes
+    - always_declare_return_types
+    - avoid_print
+    - unawaited_futures
