@@ -63,9 +63,11 @@ class PantallaLista extends StatelessWidget {
                   icon: const Icon(Icons.playlist_remove),
                   onPressed: () {
                     final n = lista.limpiarComprados();
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Se quitaron $n artículos comprados')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(n == 1 ? 'Se quitó 1 artículo comprado' : 'Se quitaron $n artículos comprados'),
+                      ),
+                    );
                   },
                 ),
             ],
@@ -77,45 +79,52 @@ class PantallaLista extends StatelessWidget {
           ),
           body: lista.cargando
               ? const Center(child: CircularProgressIndicator())
-              : Column(
-                  children: [
-                    _Resumen(lista: lista),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: SegmentedButton<Filtro>(
-                        segments: const [
-                          ButtonSegment(value: Filtro.todos, label: Text('Todos')),
-                          ButtonSegment(value: Filtro.pendientes, label: Text('Pendientes')),
-                          ButtonSegment(value: Filtro.comprados, label: Text('Comprados')),
-                        ],
-                        selected: {lista.filtro},
-                        onSelectionChanged: (s) => lista.filtro = s.first,
-                      ),
+              // En pantallas anchas (web, tabletas) la lista no se estira más de 720 px.
+              : Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 720),
+                    child: Column(
+                      children: [
+                        _Resumen(lista: lista),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: SegmentedButton<Filtro>(
+                            segments: const [
+                              ButtonSegment(value: Filtro.todos, label: Text('Todos')),
+                              ButtonSegment(value: Filtro.pendientes, label: Text('Pendientes')),
+                              ButtonSegment(value: Filtro.comprados, label: Text('Comprados')),
+                            ],
+                            selected: {lista.filtro},
+                            onSelectionChanged: (s) => lista.filtro = s.first,
+                          ),
+                        ),
+                        Expanded(
+                          child: grupos.isEmpty
+                              ? const _Vacia()
+                              : ListView(
+                                  padding: const EdgeInsets.only(bottom: 96),
+                                  children: [
+                                    for (final MapEntry(key: categoria, value: articulos) in grupos.entries) ...[
+                                      ListTile(
+                                        dense: true,
+                                        leading: Icon(iconosCategoria[categoria]),
+                                        title: Text(categoria.etiqueta, style: Theme.of(context).textTheme.titleSmall),
+                                      ),
+                                      for (final a in articulos)
+                                        _FilaArticulo(
+                                          key: ValueKey(a.id),
+                                          articulo: a,
+                                          lista: lista,
+                                          alQuitar: () => _quitar(context, a),
+                                        ),
+                                    ],
+                                  ],
+                                ),
+                        ),
+                      ],
                     ),
-                    Expanded(
-                      child: grupos.isEmpty
-                          ? const _Vacia()
-                          : ListView(
-                              padding: const EdgeInsets.only(bottom: 96),
-                              children: [
-                                for (final MapEntry(key: categoria, value: articulos) in grupos.entries) ...[
-                                  ListTile(
-                                    dense: true,
-                                    leading: Icon(iconosCategoria[categoria]),
-                                    title: Text(categoria.etiqueta, style: Theme.of(context).textTheme.titleSmall),
-                                  ),
-                                  for (final a in articulos)
-                                    _FilaArticulo(
-                                      key: ValueKey(a.id),
-                                      articulo: a,
-                                      lista: lista,
-                                      alQuitar: () => _quitar(context, a),
-                                    ),
-                                ],
-                              ],
-                            ),
-                    ),
-                  ],
+                  ),
                 ),
         );
       },
